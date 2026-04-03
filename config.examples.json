@@ -1,0 +1,129 @@
+{
+  "_comment": "Example configuration for Solana Volume Bot",
+  
+  "devnet": {
+    "network": "devnet",
+    "rpc": "https://api.devnet.solana.com",
+    "tokenAddress": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    "minTrade": 0.01,
+    "maxTrade": 0.05,
+    "delayMin": 5000,
+    "delayMax": 20000,
+    "slippage": 10,
+    "priorityFee": 0.0005,
+    "minSolBalance": 0.1,
+    "_notes": "Safe settings for testing on Devnet"
+  },
+
+  "mainnet_conservative": {
+    "network": "mainnet",
+    "rpc": "https://api.mainnet-beta.solana.com",
+    "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "minTrade": 0.05,
+    "maxTrade": 0.1,
+    "delayMin": 10000,
+    "delayMax": 30000,
+    "slippage": 5,
+    "priorityFee": 0.001,
+    "minSolBalance": 0.2,
+    "_notes": "Conservative settings for Mainnet - low volume, safe"
+  },
+
+  "mainnet_moderate": {
+    "network": "mainnet",
+    "rpc": "https://api.mainnet-beta.solana.com",
+    "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "minTrade": 0.1,
+    "maxTrade": 0.3,
+    "delayMin": 5000,
+    "delayMax": 15000,
+    "slippage": 5,
+    "priorityFee": 0.001,
+    "minSolBalance": 0.3,
+    "_notes": "Moderate settings - medium volume"
+  },
+
+  "mainnet_aggressive": {
+    "network": "mainnet",
+    "rpc": "https://api.mainnet-beta.solana.com",
+    "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "minTrade": 0.2,
+    "maxTrade": 0.5,
+    "delayMin": 3000,
+    "delayMax": 10000,
+    "slippage": 3,
+    "priorityFee": 0.002,
+    "minSolBalance": 0.5,
+    "_notes": "Aggressive settings - high volume, requires more capital"
+  },
+
+  "custom_rpc_endpoints": {
+    "helius": "https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY",
+    "quicknode": "https://YOUR_ENDPOINT.solana-mainnet.quiknode.pro/YOUR_TOKEN/",
+    "alchemy": "https://solana-mainnet.g.alchemy.com/v2/YOUR_API_KEY",
+    "_notes": "Premium RPC endpoints for better performance"
+  },
+
+  "common_tokens": {
+    "usdc_mainnet": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "usdc_devnet": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    "usdt_mainnet": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "bonk_mainnet": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "_notes": "Common token addresses for trading"
+  },
+
+  "volume_calculations": {
+    "small_volume": {
+      "wallets": 3,
+      "avgTrade": 0.03,
+      "cyclesPerHour": 60,
+      "estimatedVolumePerHour": 5.4,
+      "_calculation": "3 wallets × 0.03 SOL × 60 cycles = 5.4 SOL/hour"
+    },
+    "medium_volume": {
+      "wallets": 5,
+      "avgTrade": 0.15,
+      "cyclesPerHour": 120,
+      "estimatedVolumePerHour": 90,
+      "_calculation": "5 wallets × 0.15 SOL × 120 cycles = 90 SOL/hour"
+    },
+    "large_volume": {
+      "wallets": 10,
+      "avgTrade": 0.35,
+      "cyclesPerHour": 180,
+      "estimatedVolumePerHour": 630,
+      "_calculation": "10 wallets × 0.35 SOL × 180 cycles = 630 SOL/hour"
+    }
+  },
+
+  "recommended_settings_by_capital": {
+    "0.5_to_2_SOL": {
+      "wallets": 2,
+      "minTrade": 0.01,
+      "maxTrade": 0.05,
+      "delayMin": 10000,
+      "delayMax": 30000
+    },
+    "2_to_10_SOL": {
+      "wallets": 5,
+      "minTrade": 0.05,
+      "maxTrade": 0.15,
+      "delayMin": 5000,
+      "delayMax": 20000
+    },
+    "10_to_50_SOL": {
+      "wallets": 10,
+      "minTrade": 0.1,
+      "maxTrade": 0.3,
+      "delayMin": 3000,
+      "delayMax": 15000
+    },
+    "50_plus_SOL": {
+      "wallets": 15,
+      "minTrade": 0.2,
+      "maxTrade": 0.5,
+      "delayMin": 2000,
+      "delayMax": 10000
+    }
+  }
+}
