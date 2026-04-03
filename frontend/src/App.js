@@ -7,7 +7,7 @@ import StatsCard from './components/StatsCard';
 import LogsPanel from './components/LogsPanel';
 import WalletsPanel from './components/WalletsPanel';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function App() {
   const [botStatus, setBotStatus] = useState({
