@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Connection, Keypair, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { SolanaTracker } = require('solana-swap');
-const bs58 = require('bs58');
+const bs58 = require('bs58').default || require('bs58');
 
 const app = express();
 const PORT = 5000;
