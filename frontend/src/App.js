@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import WalletConnect from './components/WalletConnect';
-import VolumeSimulator from './components/VolumeSimulator';
-import ContractMonitor from './components/ContractMonitor';
-import FastTrading from './components/FastTrading';
-import AntiDetectionGuide from './components/AntiDetectionGuide';
-import WalletManager from './components/WalletManager';
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function App() {
-  // States
-  const [mode, setMode] = useState('volume'); // 'volume' or 'sniper'
-  const [connected, setConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
+  const [mode, setMode] = useState('volume');
   const [botRunning, setBotRunning] = useState(false);
   const [stats, setStats] = useState({
     totalVolume: 0,
@@ -21,12 +12,11 @@ function App() {
     tokensDetected: 0,
     tokensSniped: 0
   });
-  const [wallets, setWallets] = useState([]);
-  const [config, setConfig] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, wallets, simulator, guide
+  const [walletCount, setWalletCount] = useState(0);
+  const [generatingCount, setGeneratingCount] = useState(10);
+  const [generatedWallets, setGeneratedWallets] = useState([]);
 
-  // Fetch status
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -35,8 +25,9 @@ function App() {
         setBotRunning(data.running);
         setStats(data.stats);
         setMode(data.mode);
+        setWalletCount(data.walletCount);
       } catch (error) {
-        console.error('Error fetching status:', error);
+        console.error('Error:', error);
       }
     };
 
@@ -45,21 +36,6 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch config
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch(`${API_URL}/config`);
-        const data = await response.json();
-        setConfig(data);
-      } catch (error) {
-        console.error('Error fetching config:', error);
-      }
-    };
-    fetchConfig();
-  }, []);
-
-  // Fetch logs
   useEffect(() => {
     const fetchLogs = async () => {
       try {
@@ -67,7 +43,7 @@ function App() {
         const data = await response.json();
         setLogs(data);
       } catch (error) {
-        console.error('Error fetching logs:', error);
+        console.error('Error:', error);
       }
     };
 
@@ -76,201 +52,187 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handlers
   const handleModeChange = async (newMode) => {
     try {
-      const response = await fetch(`${API_URL}/mode`, {
+      await fetch(`${API_URL}/mode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: newMode })
       });
-      const data = await response.json();
-      if (data.success) {
-        setMode(newMode);
-      }
+      setMode(newMode);
     } catch (error) {
-      console.error('Error changing mode:', error);
+      console.error('Error:', error);
     }
   };
 
-  const handleStartBot = async () => {
+  const handleStart = async () => {
     try {
-      const response = await fetch(`${API_URL}/start`, {
-        method: 'POST'
-      });
+      const response = await fetch(`${API_URL}/start`, { method: 'POST' });
       const data = await response.json();
       if (data.success) {
         setBotRunning(true);
+        alert('Bot iniciado correctamente!');
+      } else {
+        alert(data.message || 'Error al iniciar');
       }
     } catch (error) {
-      console.error('Error starting bot:', error);
+      console.error('Error:', error);
+      alert('Error al iniciar bot');
     }
   };
 
-  const handleStopBot = async () => {
+  const handleStop = async () => {
     try {
-      const response = await fetch(`${API_URL}/stop`, {
-        method: 'POST'
+      await fetch(`${API_URL}/stop`, { method: 'POST' });
+      setBotRunning(false);
+      alert('Bot detenido');
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleGenerateWallets = async () => {
+    try {
+      const response = await fetch(`${API_URL}/wallets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          count: parseInt(generatingCount)
+        })
       });
       const data = await response.json();
+      
       if (data.success) {
-        setBotRunning(false);
+        setGeneratedWallets(data.wallets);
+        alert(`${data.count} wallets generadas! Descarga el JSON.`);
+        
+        // Auto-download
+        const blob = new Blob([JSON.stringify(data.wallets, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wallets-${Date.now()}.json`;
+        a.click();
       }
     } catch (error) {
-      console.error('Error stopping bot:', error);
+      console.error('Error:', error);
+      alert('Error generando wallets');
     }
   };
 
   return (
-    <div className="app">
-      {/* Header */}
-      <header className="header">
-        <div className="header-content">
-          <h1>🔥 Solana Volume Bot V2</h1>
-          <div className="header-right">
-            <div className="mode-selector">
-              <button 
-                className={`mode-btn ${mode === 'volume' ? 'active' : ''}`}
-                onClick={() => handleModeChange('volume')}
-              >
-                📊 Volume Bot
-              </button>
-              <button 
-                className={`mode-btn ${mode === 'sniper' ? 'active' : ''}`}
-                onClick={() => handleModeChange('sniper')}
-              >
-                🎯 Pump Sniper
-              </button>
-            </div>
-            <WalletConnect 
-              connected={connected}
-              walletAddress={walletAddress}
-              onConnect={(address) => {
-                setConnected(true);
-                setWalletAddress(address);
-              }}
-              onDisconnect={() => {
-                setConnected(false);
-                setWalletAddress('');
-              }}
-            />
-          </div>
+    <div className="App">
+      <header>
+        <h1>🔥 Solana Volume Bot V2</h1>
+        <div className="mode-selector">
+          <button 
+            className={mode === 'volume' ? 'active' : ''}
+            onClick={() => handleModeChange('volume')}
+          >
+            📊 Volume Bot
+          </button>
+          <button 
+            className={mode === 'sniper' ? 'active' : ''}
+            onClick={() => handleModeChange('sniper')}
+          >
+            🎯 Pump Sniper
+          </button>
         </div>
       </header>
 
-      {/* Navigation */}
-      <nav className="nav-tabs">
-        <button 
-          className={activeTab === 'dashboard' ? 'active' : ''}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          📈 Dashboard
-        </button>
-        <button 
-          className={activeTab === 'wallets' ? 'active' : ''}
-          onClick={() => setActiveTab('wallets')}
-        >
-          💼 Wallets
-        </button>
-        <button 
-          className={activeTab === 'simulator' ? 'active' : ''}
-          onClick={() => setActiveTab('simulator')}
-        >
-          🧮 Simulator
-        </button>
-        <button 
-          className={activeTab === 'guide' ? 'active' : ''}
-          onClick={() => setActiveTab('guide')}
-        >
-          📚 Guía Anti-Detección
-        </button>
-      </nav>
-
-      {/* Main Content */}
-      <main className="main-content">
-        {activeTab === 'dashboard' && (
-          <div className="dashboard">
-            {/* Stats Cards */}
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>Total Volume</h3>
-                <p className="stat-value">{stats.totalVolume.toFixed(4)} SOL</p>
-              </div>
-              <div className="stat-card">
-                <h3>Trades Executed</h3>
-                <p className="stat-value">{stats.tradesExecuted}</p>
-              </div>
-              {mode === 'sniper' && (
-                <>
-                  <div className="stat-card">
-                    <h3>Tokens Detected</h3>
-                    <p className="stat-value">{stats.tokensDetected}</p>
-                  </div>
-                  <div className="stat-card">
-                    <h3>Tokens Sniped</h3>
-                    <p className="stat-value">{stats.tokensSniped}</p>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Bot Control */}
-            <div className="bot-control">
-              <h2>Bot Control</h2>
-              <div className="control-buttons">
-                {!botRunning ? (
-                  <button className="btn btn-start" onClick={handleStartBot}>
-                    🟢 Start Bot
-                  </button>
-                ) : (
-                  <button className="btn btn-stop" onClick={handleStopBot}>
-                    🔴 Stop Bot
-                  </button>
-                )}
-              </div>
-              <div className="status-indicator">
-                Status: {botRunning ? '🟢 Running' : '⚫ Stopped'} | Mode: {mode === 'volume' ? '📊 Volume' : '🎯 Sniper'}
-              </div>
-            </div>
-
-            {/* Mode-specific components */}
-            {mode === 'sniper' && (
-              <>
-                <ContractMonitor apiUrl={API_URL} />
-                <FastTrading apiUrl={API_URL} />
-              </>
-            )}
-
-            {/* Logs */}
-            <div className="logs-section">
-              <h2>Activity Logs</h2>
-              <div className="logs-container">
-                {logs.slice().reverse().slice(0, 20).map((log, index) => (
-                  <div key={index} className={`log-entry log-${log.type}`}>
-                    <span className="log-time">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                    <span className="log-type">[{log.type.toUpperCase()}]</span>
-                    <span className="log-message">{log.message}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+      <main>
+        <section className="stats">
+          <div className="stat-card">
+            <h3>Total Volume</h3>
+            <p>{stats.totalVolume.toFixed(4)} SOL</p>
           </div>
-        )}
+          <div className="stat-card">
+            <h3>Trades</h3>
+            <p>{stats.tradesExecuted}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Wallets</h3>
+            <p>{walletCount}</p>
+          </div>
+          {mode === 'sniper' && (
+            <>
+              <div className="stat-card">
+                <h3>Tokens Detected</h3>
+                <p>{stats.tokensDetected}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Tokens Sniped</h3>
+                <p>{stats.tokensSniped}</p>
+              </div>
+            </>
+          )}
+        </section>
 
-        {activeTab === 'wallets' && (
-          <WalletManager 
-            apiUrl={API_URL}
-            wallets={wallets}
-            onWalletsUpdate={setWallets}
-          />
-        )}
+        <section className="wallet-gen">
+          <h2>💼 Generar Wallets</h2>
+          <div className="input-group">
+            <input 
+              type="number" 
+              value={generatingCount}
+              onChange={(e) => setGeneratingCount(e.target.value)}
+              placeholder="Cantidad"
+            />
+            <button onClick={handleGenerateWallets}>
+              ✨ Generar
+            </button>
+          </div>
+          <p style={{fontSize: '0.9rem', color: '#888'}}>
+            Sin límite - genera cuantas quieras (10, 100, 1000+)
+          </p>
+        </section>
 
-        {activeTab === 'simulator' && (
-          <VolumeSimulator apiUrl={API_URL} />
-        )}
+        <section className="controls">
+          <h2>Control del Bot</h2>
+          <div className="button-group">
+            {!botRunning ? (
+              <button className="btn-start" onClick={handleStart}>
+                🟢 INICIAR BOT
+              </button>
+            ) : (
+              <button className="btn-stop" onClick={handleStop}>
+                🔴 DETENER BOT
+              </button>
+            )}
+          </div>
+          <p className="status">
+            Estado: {botRunning ? '🟢 Corriendo' : '⚫ Detenido'} | Modo: {mode === 'volume' ? '📊 Volume' : '🎯 Sniper'}
+          </p>
+        </section>
 
-        {activeTab === 'guide' && (
-          <AntiDetectionGuide />
+        <section className="logs">
+          <h2>📝 Activity Logs</h2>
+          <div className="logs-container">
+            {logs.slice().reverse().slice(0, 20).map((log, index) => (
+              <div key={index} className={`log-entry log-${log.type}`}>
+                <span className="log-time">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <span className="log-type">[{log.type.toUpperCase()}]</span>
+                <span className="log-message">{log.message}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {generatedWallets.length > 0 && (
+          <section className="wallets-display">
+            <h2>⚠️ WALLETS GENERADAS - GUARDA ESTAS PRIVATE KEYS</h2>
+            <div className="wallets-list">
+              {generatedWallets.map((wallet, index) => (
+                <div key={index} className="wallet-item">
+                  <strong>Wallet {index + 1}:</strong>
+                  <div style={{fontSize: '0.85rem', fontFamily: 'monospace'}}>
+                    <div>Public: {wallet.publicKey}</div>
+                    <div style={{color: '#ff4444'}}>Private: {wallet.privateKey}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
       </main>
     </div>
