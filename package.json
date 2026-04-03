@@ -1,26 +1,28 @@
 {
-  "name": "solana-volume-bot-pro",
-  "version": "1.0.0",
-  "description": "Professional Solana Volume Bot with Dashboard",
+  "name": "solana-volume-bot-v2",
+  "version": "2.0.0",
+  "description": "Dual-mode Solana trading bot: Volume Generation + Pump.fun Sniper",
   "main": "index.js",
   "scripts": {
-    "install:all": "cd backend && npm install && cd ../frontend && npm install",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd backend && npm run dev",
-    "client": "cd frontend && npm start",
-    "build": "cd frontend && npm run build",
-    "start": "cd backend && npm start"
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm start",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blackleets/volume-bot-v2"
   },
   "keywords": [
     "solana",
-    "volume",
-    "bot",
     "trading",
-    "dashboard"
+    "bot",
+    "volume",
+    "pump.fun",
+    "sniper",
+    "crypto",
+    "defi"
   ],
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  }
+  "author": "Blackleets",
+  "license": "MIT"
 }

@@ -1,27 +1,24 @@
 # Dependencies
 node_modules/
-/.pnp
-.pnp.js
+package-lock.json
 
-# Testing
-/coverage
-
-# Production
-/build
-/frontend/build
-
-# Misc
-.DS_Store
+# Environment variables
+.env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.production
+
+# Build outputs
+build/
+dist/
 
 # Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 *.log
+npm-debug.log*
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
@@ -29,5 +26,11 @@ yarn-error.log*
 *.swp
 *.swo
 
-# OS
-Thumbs.db
+# Wallet files (IMPORTANTE - no subir wallets)
+wallets.json
+wallets-*.json
+*.wallet
+
+# Private keys
+*.key
+private-keys.txt

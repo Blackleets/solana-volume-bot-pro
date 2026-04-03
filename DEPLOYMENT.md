@@ -1,254 +1,387 @@
-# Deployment Configuration
+# 🚀 Guía de Deployment - Solana Volume Bot V2
 
-## Environment Variables
+## 📋 Opciones de Deployment
 
-### Backend (.env file - optional)
+### Opción 1: Local (Desarrollo/Uso Personal)
+### Opción 2: Vercel (Frontend) + Render (Backend)
+### Opción 3: Railway (Todo en uno)
+### Opción 4: VPS (Control total)
+
+---
+
+## 🏠 OPCIÓN 1: LOCAL (MÁS FÁCIL PARA EMPEZAR)
+
+### Requisitos
+- Node.js 16+ instalado
+- Git instalado
+
+### Pasos
+
+**1. Clonar/Descargar proyecto**
+
+```bash
+git clone https://github.com/Blackleets/volume-bot-v2
+cd volume-bot-v2
+```
+
+**2. Instalar Backend**
+
+```bash
+cd backend
+npm install
+```
+
+**3. Iniciar Backend**
+
+```bash
+npm start
+```
+
+Backend corriendo en `http://localhost:5000`
+
+**4. Instalar Frontend (nueva terminal)**
+
+```bash
+cd frontend
+npm install
+```
+
+**5. Iniciar Frontend**
+
+```bash
+npm start
+```
+
+Frontend corriendo en `http://localhost:3000`
+
+**6. Abrir en navegador**
+
+```
+http://localhost:3000
+```
+
+✅ **Listo para usar!**
+
+---
+
+## ☁️ OPCIÓN 2: VERCEL + RENDER (RECOMENDADO)
+
+### Frontend en Vercel (Gratis)
+
+**1. Crear cuenta en Vercel**
+- Ve a https://vercel.com
+- Sign up con GitHub
+
+**2. Conectar GitHub repo**
+- New Project
+- Import tu repositorio
+- Root Directory: `frontend`
+- Framework Preset: `Create React App`
+
+**3. Variables de entorno**
+```
+REACT_APP_API_URL=https://tu-backend.onrender.com/api
+```
+
+**4. Deploy**
+- Click Deploy
+- Espera 2-3 minutos
+- ✅ Frontend listo
+
+### Backend en Render (Gratis con límites)
+
+**1. Crear cuenta en Render**
+- Ve a https://render.com
+- Sign up con GitHub
+
+**2. Crear Web Service**
+- New → Web Service
+- Connect tu repositorio
+- Root Directory: `backend`
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+**3. Variables de entorno**
 ```
 PORT=5000
-NODE_ENV=development
 ```
 
-### Frontend (.env file - optional)
+**4. Deploy**
+- Click Create Web Service
+- Espera 3-5 minutos
+- ✅ Backend listo
+
+**5. Actualizar Frontend**
+- Ve a Vercel
+- Settings → Environment Variables
+- Actualiza `REACT_APP_API_URL` con la URL de Render
+- Redeploy
+
+---
+
+## 🚂 OPCIÓN 3: RAILWAY (TODO EN UNO)
+
+**1. Crear cuenta**
+- https://railway.app
+- Sign up con GitHub
+
+**2. New Project**
+- Deploy from GitHub repo
+- Select repository
+
+**3. Configure Backend**
+- Add service: backend
+- Root Directory: `/backend`
+- Start Command: `npm start`
+- Add domain
+
+**4. Configure Frontend**
+- Add service: frontend
+- Root Directory: `/frontend`
+- Build Command: `npm run build`
+- Start Command: `npm start`
+- Variables: `REACT_APP_API_URL=<backend-url>/api`
+- Add domain
+
+**5. Deploy**
+- Ambos servicios se deployean automáticamente
+- ✅ Listo
+
+---
+
+## 🖥️ OPCIÓN 4: VPS (DIGITALOCEAN/AWS/ETC)
+
+### Requisitos
+- VPS Ubuntu 22.04
+- 2GB RAM mínimo
+- Acceso SSH
+
+### Pasos
+
+**1. Conectar por SSH**
+
+```bash
+ssh root@tu-ip
 ```
-REACT_APP_API_URL=http://localhost:5000/api
+
+**2. Instalar Node.js**
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 
-## Default Configuration
+**3. Instalar PM2**
 
-The bot comes pre-configured for Devnet testing:
-
-```json
-{
-  "network": "devnet",
-  "rpc": "https://api.devnet.solana.com",
-  "tokenAddress": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-  "minTrade": 0.01,
-  "maxTrade": 0.05,
-  "delayMin": 5000,
-  "delayMax": 20000,
-  "slippage": 10,
-  "priorityFee": 0.0005,
-  "minSolBalance": 0.1
-}
-```
-
-## Production Deployment
-
-### Prerequisites
-- Node.js 16+
-- PM2 (for production)
-- Nginx (optional, for reverse proxy)
-
-### Install PM2
 ```bash
 npm install -g pm2
 ```
 
-### Build Frontend
+**4. Clonar proyecto**
+
 ```bash
-cd frontend
-npm run build
+git clone https://github.com/Blackleets/volume-bot-v2
+cd volume-bot-v2
 ```
 
-### Start Backend with PM2
+**5. Setup Backend**
+
 ```bash
 cd backend
-pm2 start server.js --name solana-bot-api
+npm install
+pm2 start server.js --name volume-bot-backend
 pm2 save
 pm2 startup
 ```
 
-### Serve Frontend
-Option 1 - Using serve:
+**6. Setup Frontend**
+
 ```bash
-npm install -g serve
-cd frontend/build
-serve -s -p 3000
+cd ../frontend
+npm install
+npm run build
 ```
 
-Option 2 - Using PM2:
+**7. Instalar Nginx**
+
 ```bash
-pm2 serve frontend/build 3000 --name solana-bot-frontend
+sudo apt install nginx
 ```
 
-### Monitor
+**8. Configurar Nginx**
+
 ```bash
-pm2 status
-pm2 logs solana-bot-api
+sudo nano /etc/nginx/sites-available/volume-bot
+```
+
+Pegar:
+
+```nginx
+server {
+    listen 80;
+    server_name tu-dominio.com;
+
+    location / {
+        root /root/volume-bot-v2/frontend/build;
+        try_files $uri /index.html;
+    }
+
+    location /api {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+**9. Activar sitio**
+
+```bash
+sudo ln -s /etc/nginx/sites-available/volume-bot /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+**10. Firewall**
+
+```bash
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw enable
+```
+
+✅ **Accede via http://tu-ip**
+
+---
+
+## 🔒 SSL (HTTPS) - Opcional pero Recomendado
+
+### Con Certbot (Gratis)
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d tu-dominio.com
+```
+
+Sigue las instrucciones. Certbot configurará SSL automáticamente.
+
+---
+
+## 🔧 Troubleshooting
+
+### Backend no conecta
+
+**Verifica:**
+```bash
+curl http://localhost:5000/api/health
+```
+
+Debería responder: `{"status":"ok"}`
+
+### Frontend no carga
+
+**Verifica consola del navegador:**
+- F12 → Console
+- Mira errores de CORS o network
+
+**Solución CORS:**
+En `backend/server.js`:
+```javascript
+app.use(cors({
+  origin: 'https://tu-frontend.vercel.app'
+}));
+```
+
+### Wallets no se generan
+
+**Verifica instalación:**
+```bash
+cd backend
+npm list @solana/web3.js
+npm list bs58
+```
+
+Si falta alguna:
+```bash
+npm install @solana/web3.js bs58 --save
+```
+
+---
+
+## 📊 Monitoreo
+
+### Ver logs (PM2)
+
+```bash
+pm2 logs volume-bot-backend
 pm2 monit
 ```
 
-## Docker Deployment (Optional)
+### Ver status
 
-### Backend Dockerfile
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY backend/package*.json ./
-RUN npm install
-COPY backend/ ./
-EXPOSE 5000
-CMD ["node", "server.js"]
-```
-
-### Frontend Dockerfile
-```dockerfile
-FROM node:18-alpine as build
-WORKDIR /app
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "5000:5000"
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-```
-
-## Security Considerations
-
-### Production Checklist
-- [ ] Use environment variables for sensitive data
-- [ ] Enable HTTPS
-- [ ] Set up CORS properly
-- [ ] Use rate limiting
-- [ ] Monitor server resources
-- [ ] Set up error logging
-- [ ] Use strong RPC endpoints
-- [ ] Regular backups of configuration
-
-### API Security
-```javascript
-// Add to server.js for production
-const rateLimit = require('express-rate-limit');
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-
-app.use('/api/', limiter);
-```
-
-## Monitoring & Logging
-
-### Log Files
 ```bash
-# Backend logs
-tail -f backend/logs/app.log
-
-# PM2 logs
-pm2 logs solana-bot-api --lines 100
+pm2 status
 ```
 
-### Health Checks
+### Restart
+
 ```bash
-# Check API health
-curl http://localhost:5000/api/health
-
-# Check bot status
-curl http://localhost:5000/api/status
+pm2 restart volume-bot-backend
 ```
 
-## Backup & Recovery
+---
 
-### Backup Configuration
+## 🔄 Actualizar Código
+
+### Local
+
 ```bash
-# Backup wallet data (if storing locally)
-cp backend/wallets.json backup/wallets-$(date +%Y%m%d).json
-
-# Backup configuration
-curl http://localhost:5000/api/config > backup/config-$(date +%Y%m%d).json
+git pull
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
-### Restore
+Reiniciar servicios.
+
+### Vercel/Render
+
+- Push a GitHub
+- Auto-deploy automático
+
+### VPS
+
 ```bash
-# Restore configuration via API
-curl -X POST http://localhost:5000/api/config \
-  -H "Content-Type: application/json" \
-  -d @backup/config-20240101.json
+cd /root/volume-bot-v2
+git pull
+cd backend && npm install
+pm2 restart volume-bot-backend
+cd ../frontend && npm install && npm run build
+sudo systemctl reload nginx
 ```
 
-## Performance Optimization
+---
 
-### Backend
-- Use clustering for multiple CPU cores
-- Implement caching for RPC calls
-- Use WebSocket for real-time updates
-- Optimize database queries (if using)
+## 💡 Tips
 
-### Frontend
-- Enable production build
-- Use lazy loading for components
-- Implement service workers
-- Enable gzip compression
-- Use CDN for static assets
+1. **Usa PM2 en producción** - Auto-restart si crashea
+2. **Activa SSL** - Navegadores modernos lo requieren para Wallet Connect
+3. **Backups** - Guarda tus wallets exportados
+4. **Monitoreo** - Revisa logs regularmente
+5. **Updates** - Mantén dependencias actualizadas
 
-## Troubleshooting Production Issues
+---
 
-### High CPU Usage
-- Check number of concurrent wallets
-- Reduce polling frequency
-- Optimize trade execution logic
+## 🆘 Soporte
 
-### Memory Leaks
-- Monitor with `pm2 monit`
-- Restart periodically: `pm2 restart solana-bot-api --cron "0 */6 * * *"`
+Si tienes problemas:
+1. Revisa logs
+2. Verifica network connectivity
+3. Chequea variables de entorno
+4. Abre un issue en GitHub
 
-### Network Issues
-- Use reliable RPC provider
-- Implement retry logic
-- Add circuit breakers
-- Monitor RPC response times
+---
 
-## Scaling
-
-### Horizontal Scaling
-- Run multiple bot instances
-- Use load balancer
-- Separate wallet pools per instance
-
-### Vertical Scaling
-- Upgrade server resources
-- Optimize Node.js heap size
-- Use faster SSD storage
-
-## Maintenance
-
-### Regular Tasks
-- Update dependencies: `npm update`
-- Check for security issues: `npm audit`
-- Review logs daily
-- Monitor wallet balances
-- Test configuration changes on Devnet first
-
-### Automated Maintenance
-```bash
-# Cron job for daily restart (4 AM)
-0 4 * * * pm2 restart solana-bot-api
-
-# Cron job for log cleanup (weekly)
-0 0 * * 0 pm2 flush
-```
+**¡Éxito con tu deployment!** 🚀
